@@ -1,0 +1,40 @@
+# 最好不要同时对全局变量进行操作  容易造成混乱
+# 如需操作需上锁，确保一个线程对全局变量操作时，其他线程无法操作该全局变量
+import time
+from threading import Thread,Lock
+
+#定义全局变量num
+num = 1
+# 创建一把互斥锁
+lock = Lock()
+'''
+在两个线程中都调用上锁的方法，则这两个线程就会抢着上锁，
+如果有1方成功上锁，那么导致另外一方会堵塞（一直等待）直到这个锁被解开
+'''
+
+def test1():
+    global num
+    lock.acquire()
+    for i in range(100000):
+        num+=1
+    lock.release()
+    print('test1输出num:',num)
+
+def test2():
+    global num
+    lock.acquire()
+    for i in range(100000):
+        num+=1
+    lock.release()
+    print('test2输出num:', num)
+
+
+if __name__=='__main__':
+    t1=Thread(target=test1)
+    t2=Thread(target=test2)
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+    print('主线程结束')
+
