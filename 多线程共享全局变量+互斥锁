@@ -14,18 +14,18 @@ lock = Lock()
 
 def test1():
     global num
-    lock.acquire()
+    lock.acquire() # 上锁
     for i in range(100000):
         num+=1
-    lock.release()
+    lock.release() # 释放
     print('test1输出num:',num)
 
 def test2():
     global num
-    lock.acquire()
+    lock.acquire() # 上锁
     for i in range(100000):
         num+=1
-    lock.release()
+    lock.release() # 释放
     print('test2输出num:', num)
 
 
