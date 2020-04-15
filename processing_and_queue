@@ -1,0 +1,52 @@
+"""使用multiprocessing.Process创建多进程，返回值放在队列中实现"""
+
+
+#导入模块
+import multiprocessing
+import time
+#创建进程调用函数
+def work1(interval,q):
+    print('work1')
+    time.sleep(interval)
+    q.put([interval/3,'work1']) # 函数返回值放在队列中,标明该返回值属于哪个函数（任务、参数）
+    print('end work1')
+
+def work2(interval,q):
+    print('work2')
+    time.sleep(interval)
+    q.put([interval / 3,'work2'])# 函数返回值放在队列中，标明该返回值属于哪个函数（任务、参数）
+    print('end work2')
+def work3(interval,q):
+    print('work3')
+    time.sleep(interval)
+    q.put([interval / 3,'work3'])# 函数返回值放在队列中，标明该返回值属于哪个函数（任务、参数）
+    print('end work3')
+
+if __name__=='__main__':
+    start = time.time()
+    # 创建队列，用于保存函数返回值
+    q = multiprocessing.Queue()
+    #创建进程对象
+    p1=multiprocessing.Process(target=work1,args=(4,q))
+    p2=multiprocessing.Process(target=work2,args=(3,q))
+    p3=multiprocessing.Process(target=work3,args=(2,q))
+    tasks = [p1,p2,p3]
+    #启动进程
+    for p in tasks:
+        p.start()
+
+    for p in tasks: # 当所有子进程运行完成后才运行主进程
+        p.join()
+
+    # 获取每个函数的返回值
+    results = [q.get() for i in tasks] # 注意 元素顺序是按照队列先进先出 而非进程的创建顺序
+
+    #获取进程的名称
+    for p in tasks:
+        print('name:', p.name)
+
+    print(results)
+    print('主进程结束')
+
+    end = time.time()
+    print('耗时:{0}'.format(end-start))
