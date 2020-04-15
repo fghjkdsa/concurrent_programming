@@ -1,0 +1,38 @@
+"""返回值放在队列中，不能使用multiprocessing下的队列queue，但可以用multiprocessing.Manager().Queue()"""
+import multiprocessing
+import time
+
+def func(msg,msg2,q):
+    print("start:", msg)
+    time.sleep(3)
+    a = msg2/2
+    print("end：",msg)
+    q.put([[a,msg]])# 函数返回值放在队列中，标明该返回值属于哪个参数
+
+if __name__ == "__main__":
+    start = time.time()
+    print('主进程开始')
+
+    # 创建队列，用于保存函数返回值
+    q = multiprocessing.Manager().Queue()
+
+    pool = multiprocessing.Pool(processes = 3)
+    # 添加任务
+    for i in range(1,6):
+        msg = "hello %d" %(i)
+        #维持执行的进程总数为processes，当一个进程执行完毕后会添加新的进程进去
+        pool.apply_async(func, (msg,i*10,q)) #非阻塞 并将返回值保存在队列中
+
+    pool.close()#进程池关闭之后不再接收新的请求
+    #调用join之前，先调用close函数，否则会出错。
+    # 执行完close后不会有新的进程加入到pool,join函数等待所有子进程结束
+    pool.join()
+
+    # 获取每个函数的返回值
+    results = [q.get() for i in range(1,6)]  # 注意 元素顺序是按照队列先进先出 而非进程的创建顺序
+
+    print(results)
+    print('主进程结束')
+
+    end = time.time()
+    print('耗时:{0}'.format(end-start))
